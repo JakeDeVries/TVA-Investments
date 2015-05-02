@@ -1,12 +1,12 @@
-
-__author__ = 'Jake'
-
 import csv
 import HTMLParser
 import pandas
 import Quandl
 import requests
+import re
+import itertools
 
+__author__ = 'Jake'
 exchanges = ['NASDAQ', 'NYSE', 'AMEX']
 
 
@@ -16,7 +16,15 @@ def get_us_stock_exchange_data(exchange):
     decoded = HTMLParser.HTMLParser().unescape(data)
     reader = csv.reader(decoded.splitlines(), delimiter=',', dialect='excel')
     reader.next()
-    return dict((rows[0].strip(), rows[1:9]) for rows in reader)
+    mydict = dict((rows[0].strip(), rows[1:9]) for rows in reader)
+    for k,v in mydict.iteritems():
+        if 'M' in v[2]:
+            cap = int(float(re.sub('\$|M', '', v[2]))*1000000)
+            v[2] = cap
+        elif 'B' in v[2]:
+            cap = int(float(re.sub('\$|B', '', v[2]))*1000000000)
+            v[2] = cap
+    return mydict
 
 nasdaq_dict = get_us_stock_exchange_data(exchanges[0])
 nyse_dict = get_us_stock_exchange_data(exchanges[1])
@@ -60,8 +68,6 @@ x, y = price_screen(nasdaq_dict, exchanges[0].upper())
 nyse_stocks, nyse_errors = price_screen(nyse_dict, exchanges[1].upper())
 
 with open("NYSE_Errors.csv", "wb") as outfile:
-   writer = csv.writer(outfile)
-   writer.writerow(nyse_errors.keys())
-   writer.writerows(zip(*nyse_errors.values()))
-
-
+    writer = csv.writer(outfile)
+    writer.writerow(nyse_errors.keys())
+    writer.writerows(zip(*nyse_errors.values()))
