@@ -7,8 +7,6 @@ import re
 import itertools
 
 __author__ = 'Jake'
-exchanges = ['NASDAQ', 'NYSE', 'AMEX']
-
 
 def get_us_stock_exchange_data(exchange):
     response = requests.get('http://www.nasdaq.com/screening/companies-by-name.aspx?letter=0&exchange=%s&render=download' % exchange)
@@ -26,9 +24,6 @@ def get_us_stock_exchange_data(exchange):
             v[2] = cap
     return mydict
 
-nasdaq_dict = get_us_stock_exchange_data(exchanges[0])
-nyse_dict = get_us_stock_exchange_data(exchanges[1])
-
 def market_cap_screen(dictionary):
     screened = {}
     minimum_cap = 2000000000
@@ -40,9 +35,6 @@ def market_cap_screen(dictionary):
         except ValueError:
             pass
     return screened
-
-nasdaq_screened = market_cap_screen(nasdaq_dict)
-nyse_screened = market_cap_screen(nyse_dict)
 
 def price_screen(dictionary, exchange):
     screened = {}
@@ -62,6 +54,14 @@ def price_screen(dictionary, exchange):
         except (Quandl.Quandl.DatasetNotFound, Quandl.Quandl.ErrorDownloading):
             errors[key] = dictionary[key][0:9]
     return screened, errors
+
+exchanges = ['NASDAQ', 'NYSE', 'AMEX']
+
+nasdaq_dict = get_us_stock_exchange_data(exchanges[0])
+nyse_dict = get_us_stock_exchange_data(exchanges[1])
+
+nasdaq_screened = market_cap_screen(nasdaq_dict)
+nyse_screened = market_cap_screen(nyse_dict)
 
 x, y = price_screen(nasdaq_dict, exchanges[0].upper())
 
